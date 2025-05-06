@@ -12,12 +12,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -39,9 +42,19 @@ class MainActivity : ComponentActivity() {
         setContent {
             CalendarTaskManagerTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Calendar (
+                    var localDateState by remember {
+                        mutableStateOf(LocalDate.now())
+                    }
 
+                    Calendar (
+                        selectionChanged = { localDate ->
+                            localDateState = localDate
+                        },
                         innerPadding = innerPadding
+                    )
+
+                    CalendarBottomSheet (
+                        date = localDateState
                     )
                 }
             }
@@ -139,5 +152,11 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    @Composable
+    @Preview(showBackground = true)
+    private fun CalendarBottomSheet (
+        date: LocalDate = LocalDate.now()
+    ) {
 
+    }
 }
