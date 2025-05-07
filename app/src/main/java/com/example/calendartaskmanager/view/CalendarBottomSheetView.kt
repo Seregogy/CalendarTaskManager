@@ -37,6 +37,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.calendartaskmanager.model.CalendarEvent
 import java.time.LocalDate
 
 @Composable
@@ -45,7 +46,8 @@ fun CalendarBottomSheet (
     date: LocalDate = LocalDate.now(),
     addEventClicked: () -> Unit = { },
     targetSheetHeight: Dp = (LocalConfiguration.current.screenHeightDp / 2).dp,
-    maxSheetHeight: Dp = LocalConfiguration.current.screenHeightDp.dp
+    maxSheetHeight: Dp = LocalConfiguration.current.screenHeightDp.dp,
+    calendarEvents: List<CalendarEvent> = listOf()
 ) {
     val scaffoldState = rememberBottomSheetScaffoldState()
     var bottomSheetHeight by remember {
@@ -73,12 +75,13 @@ fun CalendarBottomSheet (
         },
         sheetPeekHeight = targetSheetHeight,
         sheetContent = {
-            Box(
+            Box (
                 modifier = Modifier
             ) {
-                Column(
+                Column (
                     modifier = Modifier
                         .padding(start = 25.dp, end = 25.dp, top = 10.dp, bottom = 10.dp)
+                        .fillMaxWidth()
                         .verticalScroll(rememberScrollState())
                 ) {
                     Row(
@@ -94,49 +97,14 @@ fun CalendarBottomSheet (
                         )
                     }
 
-                    for (i in 1..2) {
-                        Card(
-                            modifier = Modifier
-                                .padding(5.dp)
-                                .height(70.dp)
-                                .fillMaxWidth()
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clickable { }
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .padding(15.dp)
-                                ) {
+                    for (event in calendarEvents)
+                        EventView(Modifier, event)
 
-                                }
-                                Text(
-                                    modifier = Modifier
-                                        .padding(15.dp),
-                                    text = "Event $i",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-
-                                Box(
-                                    modifier = Modifier
-                                        .align(Alignment.BottomCenter)
-                                        .fillMaxWidth()
-                                        .height(5.dp)
-                                        .background(MaterialTheme.colorScheme.primary),
-                                )
-                            }
-                        }
-                    }
-
-                    Button(
+                    Button (
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(70.dp)
-                            .padding(5.dp),
-                        onClick = { },
-                        shape = RoundedCornerShape(15)
+                            .padding(5.dp)
+                            .align(Alignment.CenterHorizontally),
+                        onClick = { }
                     ) {
                         Row {
                             Icon(
@@ -155,4 +123,41 @@ fun CalendarBottomSheet (
             }
         }
     ) { }
+}
+
+@Composable
+fun DrawEvent(event: CalendarEvent) {
+    Card (
+        modifier = Modifier
+            .padding(5.dp)
+            .height(70.dp)
+            .fillMaxWidth()
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable { }
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(15.dp)
+            ) {
+
+            }
+            Text(
+                modifier = Modifier
+                    .padding(15.dp),
+                text = event.name,
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(5.dp)
+                    .background(MaterialTheme.colorScheme.primary),
+            )
+        }
+    }
 }
