@@ -44,7 +44,8 @@ import java.time.LocalDate
 @OptIn(ExperimentalMaterial3Api::class)
 fun CalendarBottomSheet (
     date: LocalDate = LocalDate.now(),
-    addEventClicked: () -> Unit = { },
+    addEventClicked: (LocalDate) -> Unit = { },
+    eventClicked: (CalendarEvent) -> Unit = { },
     targetSheetHeight: Dp = (LocalConfiguration.current.screenHeightDp / 2).dp,
     maxSheetHeight: Dp = LocalConfiguration.current.screenHeightDp.dp,
     calendarEvents: List<CalendarEvent> = listOf()
@@ -98,13 +99,21 @@ fun CalendarBottomSheet (
                     }
 
                     for (event in calendarEvents)
-                        EventView(Modifier, event)
+                        EventView (
+                            modifier = Modifier
+                                .clickable {
+                                    eventClicked(event)
+                                },
+                            event = event
+                        )
 
                     Button (
                         modifier = Modifier
                             .padding(5.dp)
                             .align(Alignment.CenterHorizontally),
-                        onClick = { }
+                        onClick = {
+                            addEventClicked(date)
+                        }
                     ) {
                         Row {
                             Icon(

@@ -4,8 +4,10 @@ import android.graphics.Bitmap
 import androidx.compose.ui.graphics.Color
 import java.time.LocalDate
 import java.time.LocalTime
+import kotlin.random.Random
 
 class CalendarEvent (
+    var eventId: Long = Random.nextLong(),
     var name: String = "new event",
     var date: LocalDate = LocalDate.now(),
     var eventStart: LocalTime = LocalTime.now(),

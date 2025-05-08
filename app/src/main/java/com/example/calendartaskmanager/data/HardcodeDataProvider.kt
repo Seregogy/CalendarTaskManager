@@ -81,6 +81,14 @@ class HardcodeDataProvider : DataProvider<Map<LocalDate, List<CalendarEvent>>>()
         return this.data
     }
 
+    override fun getById(id: Long): Any {
+        return data.flatMap { events ->
+            events.value.filter { event ->
+                event.eventId == id
+            }
+        }.first()
+    }
+
     override fun saveData(data: Map<LocalDate, List<CalendarEvent>>, context: Context) {
 
     }

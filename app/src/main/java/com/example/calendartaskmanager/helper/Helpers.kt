@@ -2,24 +2,11 @@ package com.example.calendartaskmanager.helper
 
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.os.Build
-import androidx.annotation.RequiresApi
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZoneOffset
 
-//@RequiresApi(Build.VERSION_CODES.Q)
-//fun BitmapAvgColor(image: Bitmap): Color {
-//    val resultColor = mutableListOf(0, 0, 0)
-//    val imageResolution = image.width * image.height
-//
-//    for (x in 0..<image.width) {
-//        for (y in 0..<image.height) {
-//            resultColor[0] = (image.getColor(x, y).red() / imageResolution).toInt()
-//            resultColor[1] = (image.getColor(x, y).green() / imageResolution).toInt()
-//            resultColor[2] = (image.getColor(x, y).blue() / imageResolution).toInt()
-//        }
-//    }
-//
-//    return Color(resultColor[0], resultColor[1], resultColor[2], 255)
-//}
 
 fun averageColor(bitmap: Bitmap): androidx.compose.ui.graphics.Color {
     var red = 0
@@ -43,4 +30,12 @@ fun averageColor(bitmap: Bitmap): androidx.compose.ui.graphics.Color {
     blue /= size
 
     return androidx.compose.ui.graphics.Color(red, green, blue, 255)
+}
+
+fun LocalDate.toUnixTimestamp(): Long {
+    return this.atStartOfDay(ZoneOffset.UTC).toEpochSecond()
+}
+
+fun Long.fromUnixTimeStampToLocalDate(): LocalDate {
+    return Instant.ofEpochMilli(this).atZone(ZoneId.systemDefault()).toLocalDate()
 }

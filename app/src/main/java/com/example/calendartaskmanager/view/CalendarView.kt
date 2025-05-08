@@ -46,11 +46,11 @@ import java.time.YearMonth
 
 @Composable
 fun Calendar (
+    modifier: Modifier = Modifier,
     selectionChanged: (date: LocalDate, events: List<CalendarEvent>) -> Unit = { _, _ -> },
     sizeChanged: (height: Dp) -> Unit = { },
     selectionPositionChanged: (yPosition: Dp) -> Unit = { },
     localDate: LocalDate = LocalDate.now(),
-    innerPadding: PaddingValues = PaddingValues(),
     calendarEvents: Map<LocalDate, List<CalendarEvent>> = mapOf()
 ) {
     val selectableState = rememberSelectableCalendarState (
@@ -63,8 +63,7 @@ fun Calendar (
 
     SelectableCalendar (
         calendarState = selectableState,
-        modifier = Modifier
-            .padding(innerPadding)
+        modifier = modifier
             .padding(10.dp)
             .onGloballyPositioned { coords ->
                 val currentHeight = with(localDensity) {
