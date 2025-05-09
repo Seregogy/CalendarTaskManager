@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.core.EaseInCubic
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
@@ -19,8 +18,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -37,11 +36,7 @@ import com.example.calendartaskmanager.view.CalendarBottomSheet
 import com.example.calendartaskmanager.view.EditEventPage
 import com.example.calendartaskmanager.view.EventPage
 import com.example.calendartaskmanager.view.MainScreen
-import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalTime
-import java.time.ZoneId
-import java.time.ZoneOffset
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,7 +47,7 @@ class MainActivity : ComponentActivity() {
             CalendarTaskManagerTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     val navController = rememberNavController()
-                    val dataProvider = HardcodeDataProvider()
+                    val dataProvider = HardcodeDataProvider(LocalContext.current)
 
                     NavHost (
                         navController = navController,
@@ -83,8 +78,6 @@ class MainActivity : ComponentActivity() {
                             arguments = listOf(navArgument("eventId") { type = NavType.LongType })
                         ) {
                             EventPage(
-                                modifier = Modifier
-                                    .padding(innerPadding),
                                 event = dataProvider.getById(it.arguments?.getLong("eventId")!!) as CalendarEvent
                             )
                         }

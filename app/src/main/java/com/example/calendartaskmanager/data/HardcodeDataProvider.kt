@@ -1,11 +1,17 @@
 package com.example.calendartaskmanager.data
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
+import com.example.calendartaskmanager.R
 import com.example.calendartaskmanager.model.CalendarEvent
 import java.time.LocalDate
 
-class HardcodeDataProvider : DataProvider<Map<LocalDate, List<CalendarEvent>>>() {
+class HardcodeDataProvider (
+    context: Context
+) : DataProvider<Map<LocalDate, List<CalendarEvent>>>(context) {
+
     private var data: Map<LocalDate, List<CalendarEvent>> = mapOf (
         LocalDate.of(LocalDate.now().year, 1, 1) to listOf (
             CalendarEvent(
@@ -56,7 +62,10 @@ class HardcodeDataProvider : DataProvider<Map<LocalDate, List<CalendarEvent>>>()
             CalendarEvent(
                 name = "День Победы",
                 date = LocalDate.of(LocalDate.now().year, 5, 9),
-                color = Color(0xFFF44336)
+                color = Color(0xFFF44336),
+                image = BitmapFactory.decodeResource(context.resources, R.drawable.victimday),
+                description = LoremIpsum(200).values.toList().first().toString(),
+                place = "Россия"
             )
         ),
 

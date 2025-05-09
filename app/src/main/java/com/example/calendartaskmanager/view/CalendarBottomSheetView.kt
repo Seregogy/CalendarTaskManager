@@ -43,6 +43,7 @@ import java.time.LocalDate
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun CalendarBottomSheet (
+    modifier: Modifier = Modifier,
     date: LocalDate = LocalDate.now(),
     addEventClicked: (LocalDate) -> Unit = { },
     eventClicked: (CalendarEvent) -> Unit = { },
@@ -76,10 +77,10 @@ fun CalendarBottomSheet (
         },
         sheetPeekHeight = targetSheetHeight,
         sheetContent = {
-            Box (
+            Box(
                 modifier = Modifier
             ) {
-                Column (
+                Column(
                     modifier = Modifier
                         .padding(start = 25.dp, end = 25.dp, top = 10.dp, bottom = 10.dp)
                         .fillMaxWidth()
@@ -99,15 +100,14 @@ fun CalendarBottomSheet (
                     }
 
                     for (event in calendarEvents)
-                        EventView (
-                            modifier = Modifier
-                                .clickable {
-                                    eventClicked(event)
-                                },
+                        EventView(
+                            modifier = modifier,
                             event = event
-                        )
+                        ) {
+                            eventClicked(it)
+                        }
 
-                    Button (
+                    Button(
                         modifier = Modifier
                             .padding(5.dp)
                             .align(Alignment.CenterHorizontally),

@@ -1,18 +1,25 @@
 package com.example.calendartaskmanager.view
 
+import android.graphics.BitmapFactory
+import android.widget.Space
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,62 +28,182 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calendartaskmanager.R
+import com.example.calendartaskmanager.helper.parallaxLayoutModifier
 import com.example.calendartaskmanager.model.CalendarEvent
+import java.time.format.DateTimeFormatter
 
 @Composable
 @Preview(showBackground = true)
 fun EventPage(
-    event: CalendarEvent = CalendarEvent(color = Color.Green),
+    event: CalendarEvent = CalendarEvent(
+        color = Color.Green,
+        image = BitmapFactory.decodeResource(LocalContext.current.resources, R.drawable.arcane),
+        description = LoremIpsum(words = 20).values.toList().first().toString(),
+        place = "Россия"
+    ),
+    timeFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm"),
+    dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("dd, MMM yy"),
     modifier: Modifier = Modifier
 ) {
+    val scrollState = rememberScrollState()
+
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(scrollState)
     ) {
+        if (event.image != null) {
+            Image(
+                bitmap = event.image!!.asImageBitmap(),
+                contentScale = ContentScale.Crop,
+                contentDescription = "eventImage",
+                modifier = Modifier
+                    .height(170.dp)
+                    .parallaxLayoutModifier(scrollState, 2),
+                alpha = .5f
+            )
+        }
+
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(15.dp),
+                .align(Alignment.TopCenter)
+                .padding(top = 150.dp)
+                .fillMaxSize()
+                .clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp))
+                .background(MaterialTheme.colorScheme.background)
+                .padding(
+                    start = 25.dp,
+                    top = 25.dp,
+                    end = 25.dp,
+                    bottom = 25.dp
+                ),
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .padding(15.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Text(
-                    text = event.name,
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.W600,
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                )
+            Text(
+                text = event.name,
+                fontSize = 32.sp,
+                fontWeight = FontWeight.W500
+            )
 
-                Box(
+            Column { 
+                Header("Время")
+                Row(
                     modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .width(20.dp)
-                        .height(20.dp)
-                        .clip(CircleShape)
-                        .background(event.color)
-                        .clickable { }
-                )
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceContainer,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(15.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.clock_icon),
+                        contentDescription = "idk",
+                        modifier = Modifier
+                            .size(24.dp)
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Column (
+                            verticalArrangement = Arrangement.spacedBy(5.dp)
+                        ) {
+                            Text(
+                                text = event.date.format(dateFormat),
+                                fontWeight = FontWeight.W600
+                            )
+
+                            Text (
+                                text = event.eventStart.format(timeFormat)
+                            )
+                        }
+
+                        Icon(
+                            painter = painterResource(R.drawable.arrowleft_icon),
+                            contentDescription = "arrowLeft",
+                            modifier = Modifier
+                                .align(Alignment.CenterVertically)
+                        )
+
+
+                        Column (
+                            verticalArrangement = Arrangement.spacedBy(5.dp)
+                        ) {
+                            Text(
+                                text = event.date.format(dateFormat),
+                                fontWeight = FontWeight.W600
+                            )
+
+                            Text (
+                                text = event.eventEnd.format(timeFormat)
+                            )
+                        }
+                    }
+                }
             }
 
-            Box {
-                Icon(
-                    painter = painterResource(R.drawable.watch_icon),
-                    contentDescription = "watch",
+            Column {
+                Header("Место")
+                Row (
                     modifier = Modifier
-                        .size(25.dp)
-                )
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceContainer,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(15.dp),
+                    horizontalArrangement = Arrangement.spacedBy(15.dp)
+                ) {
+                    Icon (
+                        painter = painterResource(R.drawable.place_icon),
+                        contentDescription = "idk",
+                        modifier = Modifier
+                            .size(24.dp)
+                    )
+
+                    Text (
+                        text = event.place
+                    )
+                }
+            }
+
+            Column {
+                Header("Описание")
+                Row (
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceContainer,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(15.dp),
+                    horizontalArrangement = Arrangement.spacedBy(15.dp)
+                ) {
+                    Icon (
+                        painter = painterResource(R.drawable.description_icon),
+                        contentDescription = "idk",
+                        modifier = Modifier
+                            .size(24.dp)
+                    )
+
+                    Text (
+                        text = event.description
+                    )
+                }
             }
         }
     }

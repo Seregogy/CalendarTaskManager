@@ -66,6 +66,7 @@ fun MainScreen(
         },
         eventClicked = {
             eventClicked(it)
-        }
+        },
+        modifier = modifier
     )
 }
