@@ -1,29 +1,29 @@
 package com.example.calendartaskmanager.view
 
 import android.graphics.BitmapFactory
-import android.widget.Space
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,7 +48,7 @@ fun EventPage(
     event: CalendarEvent = CalendarEvent(
         color = Color.Green,
         image = BitmapFactory.decodeResource(LocalContext.current.resources, R.drawable.arcane),
-        description = LoremIpsum(words = 20).values.toList().first().toString(),
+        description = LoremIpsum(words = 5).values.toList().first().toString(),
         place = "Россия"
     ),
     timeFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm"),
@@ -133,7 +133,7 @@ fun EventPage(
                         }
 
                         Icon(
-                            painter = painterResource(R.drawable.arrowleft_icon),
+                            painter = painterResource(R.drawable.arrow_right_icon),
                             contentDescription = "arrowLeft",
                             modifier = Modifier
                                 .align(Alignment.CenterVertically)
@@ -176,7 +176,9 @@ fun EventPage(
                     )
 
                     Text (
-                        text = event.place
+                        text = event.place,
+                        modifier = Modifier
+                            .align(Alignment.CenterVertically)
                     )
                 }
             }
@@ -203,6 +205,75 @@ fun EventPage(
                     Text (
                         text = event.description
                     )
+                }
+            }
+
+            Column {
+                Header("Параметры")
+                Row (
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceContainer,
+                            shape = RoundedCornerShape(8.dp)
+                        ),
+                    horizontalArrangement = Arrangement.spacedBy(15.dp)
+                ) {
+                    Icon (
+                        painter = painterResource(R.drawable.notifications_icon),
+                        contentDescription = "idk",
+                        modifier = Modifier
+                            .padding(
+                                start = 15.dp,
+                                top = 15.dp
+                            )
+                            .size(24.dp)
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    ) {
+                        var notificationEnabled by remember { mutableStateOf(true) }
+                        var repeatNotification by remember { mutableStateOf(false) }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                "Включить уведомления"
+                            )
+                            Checkbox(
+                                checked = notificationEnabled,
+                                onCheckedChange = {
+                                    notificationEnabled = it
+                                    repeatNotification = repeatNotification && notificationEnabled
+                                    event.notificationEnabled = notificationEnabled
+                                }
+                            )
+                        }
+                        
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                "Повторять уведомления"
+                            )
+                            Checkbox(
+                                checked = repeatNotification,
+                                onCheckedChange = {
+                                    repeatNotification = it && notificationEnabled
+                                    event.notificationEnabled = repeatNotification
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }

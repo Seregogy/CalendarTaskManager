@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -16,10 +17,12 @@ import java.time.LocalDate
 fun MainScreen(
     addEventClicked: (LocalDate) -> Unit = { },
     eventClicked: (CalendarEvent) -> Unit = { },
-    dataProvider: DataProvider<Map<LocalDate, List<CalendarEvent>>>,
+    dataProvider: DataProvider<MutableMap<LocalDate, MutableList<CalendarEvent>>>,
     modifier: Modifier = Modifier
 ) {
-    var localDateState by remember {
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+
+    val localDateState = remember {
         mutableStateOf(LocalDate.now())
     }
 
@@ -31,15 +34,17 @@ fun MainScreen(
         mutableStateOf(0.dp)
     }
 
-    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-
     val currentCalendarEvents = remember {
         mutableListOf<CalendarEvent>()
     }
 
+    val calendarEvents = remember {
+        dataProvider.loadData()
+    }
+
     Calendar (
         selectionChanged = { localDate, events ->
-            localDateState = localDate
+            localDateState.value = localDate
 
             currentCalendarEvents.clear()
             events.forEach {
@@ -53,11 +58,11 @@ fun MainScreen(
             maxSheetHeight = screenHeight - yPosition
         },
         modifier = modifier,
-        calendarEvents = dataProvider.loadData()
+        calendarEvents = calendarEvents
     )
 
     CalendarBottomSheet (
-        date = localDateState,
+        date = localDateState.value,
         targetSheetHeight = screenHeight - localHeight - 25.dp,
         maxSheetHeight = maxSheetHeight,
         calendarEvents = currentCalendarEvents,

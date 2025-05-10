@@ -1,5 +1,6 @@
 package com.example.calendartaskmanager.view
 
+import android.graphics.BitmapFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,75 +12,457 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TimeInput
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.example.calendartaskmanager.R
 import com.example.calendartaskmanager.model.CalendarEvent
 import java.time.LocalDate
 
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.util.Calendar
+
 @Composable
 @Preview(showBackground = true)
 fun EditEventPage(
-    localDate: LocalDate = LocalDate.now(),
-    event: CalendarEvent = CalendarEvent(color = Color.Green),
-    modifier: Modifier = Modifier
+    event: CalendarEvent = CalendarEvent(
+        color = Color.Green,
+        image = BitmapFactory.decodeResource(LocalContext.current.resources, R.drawable.arcane),
+        description = LoremIpsum(words = 5).values.toList().first().toString(),
+        place = "Россия"
+    ),
+    timeFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm"),
+    dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("dd, MMM yy"),
+    modifier: Modifier = Modifier,
+    onEventAdd: (CalendarEvent) -> Unit = { }
 ) {
+    val scrollState = rememberScrollState()
+
+    val eventName = remember { mutableStateOf(event.name) }
+    val eventDescription = remember { mutableStateOf(event.description) }
+    val eventPlace = remember { mutableStateOf(event.place) }
+
+    val startTime = remember { mutableStateOf(event.eventStart) }
+    val endTime = remember { mutableStateOf(event.eventEnd) }
+
+    val notificationEnabled = remember { mutableStateOf(true) }
+    val repeatNotification = remember { mutableStateOf(false) }
+
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(scrollState)
     ) {
+        ImagePickerBox()
+
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(15.dp),
+                .align(Alignment.TopCenter)
+                .padding(top = 150.dp)
+                .fillMaxSize()
+                .clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp))
+                .background(MaterialTheme.colorScheme.background)
+                .padding(
+                    start = 25.dp,
+                    top = 25.dp,
+                    end = 25.dp,
+                    bottom = 25.dp
+                ),
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            Row(
+            Name(eventName)
+
+            Time(event, dateFormat, timeFormat, startTime, endTime)
+
+            Place(eventPlace)
+
+            Description(eventDescription)
+
+            Parameters(notificationEnabled, repeatNotification, event)
+
+            Button(
                 modifier = Modifier
-                    .padding(15.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    .align(Alignment.CenterHorizontally),
+                onClick = {
+                    event.name = eventName.value
+                    event.description = eventDescription.value
+                    event.place = eventPlace.value
+                    event.eventStart = startTime.value
+                    event.eventEnd = endTime.value
+                    event.notificationEnabled = notificationEnabled.value
+
+                    onEventAdd(event)
+
+                    println("${event.name}\n ${event.description}\n ${event.eventStart.format(timeFormat)}\n ${event.eventEnd.format(timeFormat)}")
+                }
             ) {
                 Text(
-                    text = event.name,
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.W600,
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                )
-
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .width(20.dp)
-                        .height(20.dp)
-                        .clip(CircleShape)
-                        .background(event.color)
-                        .clickable { }
-                )
-            }
-
-            Box {
-                Icon(
-                    painter = painterResource(R.drawable.watch_icon),
-                    contentDescription = "watch",
-                    modifier = Modifier
-                        .size(25.dp)
+                    text = "Добавить событие"
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun ImagePickerBox() {
+    Box(
+        modifier = Modifier
+            .clickable {
+
+            }
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .fillMaxWidth()
+            .height(170.dp)
+            .wrapContentHeight()
+    ) {
+        Row(
+            modifier = Modifier
+                .align(Alignment.Center),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Добавить картинку",
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.W500
+            )
+
+            Icon(
+                painter = painterResource(R.drawable.add_icon),
+                contentDescription = "add icon",
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+@Composable
+private fun Name(
+    eventName: MutableState<String>
+) {
+    TextField(
+        value = eventName.value,
+        onValueChange = {
+            eventName.value = it
+        },
+        label = {
+            Text(
+                text = "Название события"
+            )
+        },
+        modifier = Modifier
+            .fillMaxWidth(),
+        singleLine = true
+    )
+}
+
+@Composable
+private fun Time(
+    event: CalendarEvent,
+    dateFormat: DateTimeFormatter,
+    timeFormat: DateTimeFormatter,
+    startTime: MutableState<LocalTime>,
+    endTime: MutableState<LocalTime>
+) {
+    Column {
+        Header("Время")
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .padding(15.dp)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.clock_icon),
+                contentDescription = "idk",
+                modifier = Modifier
+                    .size(24.dp)
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                TimePickerText(
+                    currentDate = event.date,
+                    dateFormat = dateFormat,
+                    timeFormat = timeFormat,
+                    onConfirm = { hour, minute ->
+                        startTime.value = LocalTime.of(hour, minute)
+
+                        println(startTime.value.format(timeFormat))
+                    }
+                )
+
+                Icon(
+                    painter = painterResource(R.drawable.arrow_right_icon),
+                    contentDescription = "arrowLeft",
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                )
+
+                TimePickerText(
+                    currentDate = event.date,
+                    dateFormat = dateFormat,
+                    timeFormat = timeFormat,
+                    onConfirm = { hour, minute ->
+                        endTime.value = LocalTime.of(hour, minute)
+
+                        println(endTime.value.format(timeFormat))
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun Place(
+    eventPlace: MutableState<String>
+) {
+    TextField(
+        value = eventPlace.value,
+        onValueChange = {
+            eventPlace.value = it
+        },
+        label = {
+            Text(
+                text = "Место"
+            )
+        },
+        modifier = Modifier
+            .fillMaxWidth(),
+        singleLine = true
+    )
+}
+
+@Composable
+private fun Description(
+    eventDescription: MutableState<String>
+) {
+    TextField(
+        value = eventDescription.value,
+        onValueChange = {
+            eventDescription.value = it
+        },
+        label = {
+            Text(
+                text = "Описание"
+            )
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+    )
+}
+
+@Composable
+private fun Parameters(
+    notificationEnabled: MutableState<Boolean>,
+    repeatNotification: MutableState<Boolean>,
+    event: CalendarEvent
+) {
+    Column {
+        Header("Параметры")
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(8.dp)
+                ),
+            horizontalArrangement = Arrangement.spacedBy(15.dp)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.notifications_icon),
+                contentDescription = "idk",
+                modifier = Modifier
+                    .padding(
+                        start = 15.dp,
+                        top = 15.dp
+                    )
+                    .size(24.dp)
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "Включить уведомления"
+                    )
+                    Checkbox(
+                        checked = notificationEnabled.value,
+                        onCheckedChange = {
+                            notificationEnabled.value = it
+                            repeatNotification.value = repeatNotification.value && notificationEnabled.value
+                            event.notificationEnabled = notificationEnabled.value
+                        }
+                    )
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "Повторять уведомления"
+                    )
+                    Checkbox(
+                        checked = repeatNotification.value,
+                        onCheckedChange = {
+                            repeatNotification.value = it && notificationEnabled.value
+                            event.notificationEnabled = repeatNotification.value
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun TimePickerText(
+    currentDate: LocalDate = LocalDate.now(),
+    dateFormat: DateTimeFormatter,
+    timeFormat: DateTimeFormatter,
+    onConfirm: (hour: Int, minute: Int) -> Unit = { _, _ -> }
+) {
+    val time = Calendar.getInstance()
+
+    var showTimePicker by remember { mutableStateOf(false) }
+    val localTime = remember { mutableStateOf(LocalTime.now()) }
+    val timePickerState = rememberTimePickerState(
+        initialHour = time.get(Calendar.HOUR_OF_DAY),
+        initialMinute = time.get(Calendar.MINUTE),
+        is24Hour = true
+    )
+
+    if (showTimePicker) {
+        Dialog(
+            onDismissRequest = {
+                showTimePicker = false
+            },
+            properties = DialogProperties(
+                usePlatformDefaultWidth = true
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainer)
+                    .padding(25.dp),
+                verticalArrangement = Arrangement.spacedBy(15.dp)
+            ) {
+                Text(
+                    text = "Выберите время",
+                    fontWeight = FontWeight.W600
+                )
+
+                TimeInput(
+                    state = timePickerState,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                )
+
+                Row (
+                    modifier = Modifier
+                        .wrapContentWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    Button(
+                        onClick = {
+                            onConfirm(timePickerState.hour, timePickerState.minute)
+                            localTime.value = LocalTime.of(timePickerState.hour, timePickerState.minute)
+
+                            showTimePicker = false
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                    ) {
+                        Text(
+                            text = "Ок"
+                        )
+                    }
+
+                    TextButton(
+                        onClick = {
+                            showTimePicker = false
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                    ) {
+                        Text(
+                            text = "Отмена"
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .padding(2.dp)
+            .clip(RoundedCornerShape(5.dp))
+            .clickable {
+                showTimePicker = true
+            },
+        verticalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        Text(
+            text = currentDate.format(dateFormat),
+            fontWeight = FontWeight.W600
+        )
+
+        Text(
+            text = localTime.value.format(timeFormat)
+        )
     }
 }

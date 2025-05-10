@@ -12,6 +12,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -39,6 +42,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.calendartaskmanager.model.CalendarEvent
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -99,13 +103,17 @@ fun CalendarBottomSheet (
                         )
                     }
 
-                    for (event in calendarEvents)
-                        EventView(
-                            modifier = modifier,
-                            event = event
-                        ) {
-                            eventClicked(it)
+                    Column (
+                        verticalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        for (event in calendarEvents) {
+                            EventView(
+                                event = event
+                            ) {
+                                eventClicked(it)
+                            }
                         }
+                    }
 
                     Button(
                         modifier = Modifier
@@ -113,6 +121,7 @@ fun CalendarBottomSheet (
                             .align(Alignment.CenterHorizontally),
                         onClick = {
                             addEventClicked(date)
+                            println(date.format(DateTimeFormatter.ISO_DATE))
                         }
                     ) {
                         Row {

@@ -27,6 +27,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.calendartaskmanager.data.HardcodeDataProvider
+import com.example.calendartaskmanager.data.LocalSaveDataProvider
 import com.example.calendartaskmanager.helper.fromUnixTimeStampToLocalDate
 import com.example.calendartaskmanager.helper.toUnixTimestamp
 import com.example.calendartaskmanager.model.CalendarEvent
@@ -36,7 +37,10 @@ import com.example.calendartaskmanager.view.CalendarBottomSheet
 import com.example.calendartaskmanager.view.EditEventPage
 import com.example.calendartaskmanager.view.EventPage
 import com.example.calendartaskmanager.view.MainScreen
+import kotlinx.serialization.json.Json
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,6 +52,10 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     val navController = rememberNavController()
                     val dataProvider = HardcodeDataProvider(LocalContext.current)
+
+                    val jsonDataProvider = LocalSaveDataProvider(LocalContext.current)
+                    jsonDataProvider.saveData(jsonDataProvider.data, LocalContext.current)
+                    testSerialization()
 
                     NavHost (
                         navController = navController,
@@ -63,7 +71,7 @@ class MainActivity : ComponentActivity() {
                                 modifier = Modifier
                                     .padding(innerPadding),
                                 addEventClicked = { localDate ->
-                                    navController.navigate("EditEventPage/${localDate.toUnixTimestamp()}")
+                                    navController.navigate("EditEventPage/${localDate.toUnixTimestamp()}/0")
                                 },
                                 eventClicked = { event ->
                                     navController.navigate("EventPage/${event.eventId}")
@@ -83,18 +91,34 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable (
-                            route = "EditEventPage/{timeStamp}",
+                            route = "EditEventPage/{timeStamp}/{eventId}",
                             enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, animationSpec = tween(400)) },
                             exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(400)) },
-                            arguments = listOf(navArgument("timeStamp") { type = NavType.LongType })
+                            arguments = listOf(
+                                navArgument("timeStamp") {
+                                    type = NavType.LongType
+                                },
+                                navArgument("eventId") {
+                                    type = NavType.LongType
+                                }
+                            )
                         ) {
-                            val localDate = it.arguments?.getLong("timeStamp")!!.fromUnixTimeStampToLocalDate()
+                            val timestamp = it.arguments?.getLong("timeStamp")!!
+                            val localDate = timestamp.fromUnixTimeStampToLocalDate()
+
+                            println(timestamp)
+                            println(localDate.format(DateTimeFormatter.ISO_DATE))
 
                             EditEventPage (
+                                event = CalendarEvent(
+                                    date = localDate
+                                ),
                                 modifier = Modifier
-                                    .padding(innerPadding),
-                                localDate = localDate
-                            )
+                                    .padding(innerPadding)
+                            ) { event ->
+                                dataProvider.add(event)
+                                navController.navigate("MainScreen")
+                            }
                         }
                     }
                 }
@@ -120,6 +144,25 @@ class MainActivity : ComponentActivity() {
                 date = localDateState,
                 targetSheetHeight = (LocalConfiguration.current.screenHeightDp / 2).dp + 60.dp
             )
+        }
+    }
+
+    fun testSerialization() {
+        val event = CalendarEvent(
+            name = "Test Event",
+            place = "Россия",
+            description = "Да просто описание",
+            date = LocalDate.of(2023, 12, 31),
+            eventStart = LocalTime.of(14, 0),
+            eventEnd = LocalTime.of(15, 30)
+        )
+
+        try {
+            val json = Json.encodeToString(event)
+            println("Serialization successful: $json")
+        } catch (e: Exception) {
+            println("Serialization failed: ${e.message}")
+            e.printStackTrace()
         }
     }
 }

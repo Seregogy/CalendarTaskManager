@@ -10,10 +10,9 @@ import java.time.LocalDate
 
 class HardcodeDataProvider (
     context: Context
-) : DataProvider<Map<LocalDate, List<CalendarEvent>>>(context) {
-
-    private var data: Map<LocalDate, List<CalendarEvent>> = mapOf (
-        LocalDate.of(LocalDate.now().year, 1, 1) to listOf (
+) : DataProvider<MutableMap<LocalDate, MutableList<CalendarEvent>>>(context) {
+    var data: MutableMap<LocalDate, MutableList<CalendarEvent>> = mutableMapOf (
+        LocalDate.of(LocalDate.now().year, 1, 1) to mutableListOf (
             CalendarEvent(
                 name = "Новый Год",
                 date = LocalDate.of(LocalDate.now().year, 1, 1),
@@ -26,7 +25,7 @@ class HardcodeDataProvider (
             )
         ),
 
-        LocalDate.of(LocalDate.now().year, 1, 7) to listOf(
+        LocalDate.of(LocalDate.now().year, 1, 7) to mutableListOf(
             CalendarEvent(
                 name = "Рождество Христово",
                 date = LocalDate.of(LocalDate.now().year, 1, 7),
@@ -34,7 +33,7 @@ class HardcodeDataProvider (
             )
         ),
 
-        LocalDate.of(LocalDate.now().year, 2, 23) to listOf(
+        LocalDate.of(LocalDate.now().year, 2, 23) to mutableListOf(
             CalendarEvent(
                 name = "День защитника Отечества",
                 date = LocalDate.of(LocalDate.now().year, 2, 23),
@@ -42,7 +41,7 @@ class HardcodeDataProvider (
             )
         ),
 
-        LocalDate.of(LocalDate.now().year, 3, 8) to listOf(
+        LocalDate.of(LocalDate.now().year, 3, 8) to mutableListOf(
             CalendarEvent(
                 name = "Международный женский день",
                 date = LocalDate.of(LocalDate.now().year, 3, 8),
@@ -50,7 +49,7 @@ class HardcodeDataProvider (
             )
         ),
 
-        LocalDate.of(LocalDate.now().year, 5, 1) to listOf(
+        LocalDate.of(LocalDate.now().year, 5, 1) to mutableListOf(
             CalendarEvent(
                 name = "Праздник Весны и Труда",
                 date = LocalDate.of(LocalDate.now().year, 5, 1),
@@ -58,18 +57,18 @@ class HardcodeDataProvider (
             )
         ),
 
-        LocalDate.of(LocalDate.now().year, 5, 9) to listOf(
+        LocalDate.of(LocalDate.now().year, 5, 9) to mutableListOf(
             CalendarEvent(
                 name = "День Победы",
                 date = LocalDate.of(LocalDate.now().year, 5, 9),
                 color = Color(0xFFF44336),
-                image = BitmapFactory.decodeResource(context.resources, R.drawable.victimday),
+                image = BitmapFactory.decodeResource(context.resources, R.drawable.victory_day),
                 description = LoremIpsum(200).values.toList().first().toString(),
                 place = "Россия"
             )
         ),
 
-        LocalDate.of(LocalDate.now().year, 6, 12) to listOf(
+        LocalDate.of(LocalDate.now().year, 6, 12) to mutableListOf(
             CalendarEvent(
                 name = "День России",
                 date = LocalDate.of(LocalDate.now().year, 6, 12),
@@ -77,7 +76,7 @@ class HardcodeDataProvider (
             )
         ),
 
-        LocalDate.of(LocalDate.now().year, 11, 4) to listOf(
+        LocalDate.of(LocalDate.now().year, 11, 4) to mutableListOf(
             CalendarEvent(
                 name = "День народного единства",
                 date = LocalDate.of(LocalDate.now().year, 11, 4),
@@ -86,7 +85,7 @@ class HardcodeDataProvider (
         )
     )
 
-    override fun loadData(data: Any?): Map<LocalDate, List<CalendarEvent>> {
+    override fun loadData(data: Any?): MutableMap<LocalDate, MutableList<CalendarEvent>> {
         return this.data
     }
 
@@ -98,7 +97,29 @@ class HardcodeDataProvider (
         }.first()
     }
 
-    override fun saveData(data: Map<LocalDate, List<CalendarEvent>>, context: Context) {
+    override fun add(data: Any) {
+        if ((data is CalendarEvent).not()) return
+
+        val event = data as CalendarEvent
+        if (this.data.containsKey(event.date))
+            this.data[event.date]?.add(event)
+
+        else
+            this.data[event.date] = mutableListOf(event)
+    }
+
+    override fun update(id: Long, data: Any) {
+        if ((data is CalendarEvent).not()) return
+
+        val event = data as CalendarEvent
+        val eventIndex = this.data[event.date]?.indexOfFirst {
+            it.eventId == event.eventId
+        }
+
+        this.data[data.date]!![eventIndex!!] = event
+    }
+
+    override fun saveData(data: MutableMap<LocalDate, MutableList<CalendarEvent>>, context: Context) {
 
     }
 }

@@ -49,7 +49,7 @@ fun LocalDate.toUnixTimestamp(): Long {
 }
 
 fun Long.fromUnixTimeStampToLocalDate(): LocalDate {
-    return Instant.ofEpochMilli(this).atZone(ZoneId.systemDefault()).toLocalDate()
+    return Instant.ofEpochSecond(this).atZone(ZoneOffset.UTC).toLocalDate()
 }
 
 fun Modifier.parallaxLayoutModifier(scrollState: ScrollState, rate: Int): Modifier {
