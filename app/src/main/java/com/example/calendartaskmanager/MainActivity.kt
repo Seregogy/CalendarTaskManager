@@ -51,11 +51,7 @@ class MainActivity : ComponentActivity() {
             CalendarTaskManagerTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     val navController = rememberNavController()
-                    val dataProvider = HardcodeDataProvider(LocalContext.current)
-
-                    val jsonDataProvider = LocalSaveDataProvider(LocalContext.current)
-                    jsonDataProvider.saveData(jsonDataProvider.data, LocalContext.current)
-                    testSerialization()
+                    val dataProvider = LocalSaveDataProvider(LocalContext.current)
 
                     NavHost (
                         navController = navController,

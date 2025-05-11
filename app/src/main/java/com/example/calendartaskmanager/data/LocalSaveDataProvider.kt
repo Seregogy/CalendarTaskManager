@@ -5,11 +5,15 @@ import android.graphics.BitmapFactory
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import com.example.calendartaskmanager.R
+import com.example.calendartaskmanager.helper.CalendarEventJsonDataLoader
+import com.example.calendartaskmanager.helper.CalendarEventJsonDataSaver
 import com.example.calendartaskmanager.model.CalendarEvent
+import java.io.File
 import java.time.LocalDate
 
 class LocalSaveDataProvider(
-    context: Context
+    context: Context,
+    private val saveFileName: String = "newSave.json"
 ) : DataProvider<MutableList<CalendarEvent>>(context) {
     var data: MutableList<CalendarEvent> = mutableListOf(
         CalendarEvent(
@@ -63,26 +67,55 @@ class LocalSaveDataProvider(
         )
     )
 
+    init {
+        val targetFile = File(context.filesDir, saveFileName)
+
+        if (targetFile.exists().not())
+            saveData(this.data, context)
+        else
+            loadData()
+    }
+
     override fun loadData(data: Any?): MutableList<CalendarEvent> {
-        TODO("Not yet implemented")
+        this.data = CalendarEventJsonDataLoader(context, saveFileName).load()
+
+        return this.data
     }
 
     override fun getById(id: Long): Any {
-        TODO("Not yet implemented")
+        return data.first { event ->
+            event.eventId == id
+        }
     }
 
     override fun add(data: Any) {
-        TODO("Not yet implemented")
+        if ((data is CalendarEvent).not()) return
+        val event = data as CalendarEvent
+
+        if (this.data.contains(event)) return
+
+        this.data.add(event)
+
+        saveData(this.data, context)
     }
 
     override fun update(id: Long, data: Any) {
-        TODO("Not yet implemented")
+        if ((data is CalendarEvent).not()) return
+        val event = data as CalendarEvent
+
+        val index = this.data.indexOfFirst {
+            it.eventId == id
+        }
+
+        this.data[index] = event
+
+        saveData(this.data, context)
     }
 
     override fun saveData(
         data: MutableList<CalendarEvent>,
         context: Context
     ) {
-        CalendarEventJsonDataSaver(context).save(data)
+        CalendarEventJsonDataSaver(context, saveFileName).save(data)
     }
 }

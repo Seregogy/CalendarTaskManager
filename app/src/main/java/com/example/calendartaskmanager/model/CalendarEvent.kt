@@ -2,9 +2,9 @@ package com.example.calendartaskmanager.model
 
 import android.graphics.Bitmap
 import androidx.compose.ui.graphics.Color
-import com.example.calendartaskmanager.serializator.ColorSerializer
-import com.example.calendartaskmanager.serializator.LocalDateSerializer
-import com.example.calendartaskmanager.serializator.LocalTimeSerializer
+import com.example.calendartaskmanager.serializer.ColorSerializer
+import com.example.calendartaskmanager.serializer.LocalDateSerializer
+import com.example.calendartaskmanager.serializer.LocalTimeSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.time.LocalDate

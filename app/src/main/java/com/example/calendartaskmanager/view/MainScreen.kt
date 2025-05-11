@@ -2,6 +2,7 @@ package com.example.calendartaskmanager.view
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -17,12 +18,12 @@ import java.time.LocalDate
 fun MainScreen(
     addEventClicked: (LocalDate) -> Unit = { },
     eventClicked: (CalendarEvent) -> Unit = { },
-    dataProvider: DataProvider<MutableMap<LocalDate, MutableList<CalendarEvent>>>,
+    dataProvider: DataProvider<MutableList<CalendarEvent>>,
     modifier: Modifier = Modifier
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
-    val localDateState = remember {
+    val localDateState = rememberSaveable {
         mutableStateOf(LocalDate.now())
     }
 
@@ -35,18 +36,18 @@ fun MainScreen(
     }
 
     val currentCalendarEvents = remember {
-        mutableListOf<CalendarEvent>()
+        mutableStateListOf<CalendarEvent>()
     }
 
     val calendarEvents = remember {
         dataProvider.loadData()
     }
 
-    Calendar (
+    Calendar(
         selectionChanged = { localDate, events ->
             localDateState.value = localDate
-
             currentCalendarEvents.clear()
+
             events.forEach {
                 currentCalendarEvents.add(it)
             }
@@ -61,17 +62,17 @@ fun MainScreen(
         calendarEvents = calendarEvents
     )
 
-    CalendarBottomSheet (
+    CalendarBottomSheet(
+        modifier = modifier,
         date = localDateState.value,
-        targetSheetHeight = screenHeight - localHeight - 25.dp,
-        maxSheetHeight = maxSheetHeight,
-        calendarEvents = currentCalendarEvents,
         addEventClicked = { localDate ->
             addEventClicked(localDate)
         },
         eventClicked = {
             eventClicked(it)
         },
-        modifier = modifier
+        targetSheetHeight = screenHeight - localHeight - 25.dp,
+        maxSheetHeight = maxSheetHeight,
+        calendarEvents = currentCalendarEvents
     )
 }

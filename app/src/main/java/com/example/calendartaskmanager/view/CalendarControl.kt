@@ -50,7 +50,7 @@ fun Calendar (
     sizeChanged: (height: Dp) -> Unit = { },
     selectionPositionChanged: (yPosition: Dp) -> Unit = { },
     localDate: LocalDate = LocalDate.now(),
-    calendarEvents: Map<LocalDate, List<CalendarEvent>> = mapOf()
+    calendarEvents: List<CalendarEvent> = listOf()
 ) {
     val selectableState = rememberSelectableCalendarState (
         initialMonth = YearMonth.now(),
@@ -75,7 +75,9 @@ fun Calendar (
         horizontalSwipeEnabled = true,
         weekDaysScrollEnabled = true,
         dayContent = { dayState ->
-            val currentEvents = calendarEvents.getOrDefault(dayState.date, listOf())
+            val currentEvents = calendarEvents.filter {
+                it.date == dayState.date
+            }
 
             DayContentDrawer(
                 dayState,
@@ -167,6 +169,8 @@ private fun DayContentDrawer (
                     enabled = isCurrentMonth
                 ) {
                     selectableState.selectionState.selection = listOf(dayState.date)
+
+                    println(calendarEvents)
 
                     selectionChanged(dayState.date, calendarEvents)
                     selectionPositionChanged(yPosition)

@@ -1,4 +1,4 @@
-package com.example.calendartaskmanager.serializator
+package com.example.calendartaskmanager.serializer
 
 import androidx.compose.ui.graphics.Color
 import kotlinx.serialization.KSerializer
