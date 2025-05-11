@@ -71,7 +71,7 @@ class MainActivity : ComponentActivity() {
                                 modifier = Modifier
                                     .padding(innerPadding),
                                 addEventClicked = { localDate ->
-                                    navController.navigate("EditEventPage/${localDate.toUnixTimestamp()}/0")
+                                    navController.navigate("EditEventPage/${localDate.toUnixTimestamp()}")
                                 },
                                 eventClicked = { event ->
                                     navController.navigate("EventPage/${event.eventId}")
@@ -87,23 +87,22 @@ class MainActivity : ComponentActivity() {
                         ) {
                             EventPage(
                                 event = dataProvider.getById(it.arguments?.getLong("eventId")!!) as CalendarEvent
-                            )
+                            ) { editableEvent ->
+                                navController.navigate("UpdateEventPage/${editableEvent.eventId}")
+                            }
                         }
 
                         composable (
-                            route = "EditEventPage/{timeStamp}/{eventId}",
+                            route = "EditEventPage/{timestamp}",
                             enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, animationSpec = tween(400)) },
                             exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(400)) },
                             arguments = listOf(
-                                navArgument("timeStamp") {
-                                    type = NavType.LongType
-                                },
-                                navArgument("eventId") {
+                                navArgument("timestamp") {
                                     type = NavType.LongType
                                 }
                             )
                         ) {
-                            val timestamp = it.arguments?.getLong("timeStamp")!!
+                            val timestamp = it.arguments?.getLong("timestamp")!!
                             val localDate = timestamp.fromUnixTimeStampToLocalDate()
 
                             println(timestamp)
@@ -117,6 +116,29 @@ class MainActivity : ComponentActivity() {
                                     .padding(innerPadding)
                             ) { event ->
                                 dataProvider.add(event)
+                                navController.navigate("MainScreen")
+                            }
+                        }
+
+                        composable (
+                            route = "UpdateEventPage/{eventId}",
+                            enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, animationSpec = tween(400)) },
+                            exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(400)) },
+                            arguments = listOf(
+                                navArgument("eventId") {
+                                    type = NavType.LongType
+                                }
+                            )
+                        ) {
+                            val eventId = it.arguments?.getLong("eventId")
+                            val event = dataProvider.getById(eventId!!) as CalendarEvent
+
+                            EditEventPage (
+                                event = event,
+                                modifier = Modifier
+                                    .padding(innerPadding)
+                            ) { changedEvent ->
+                                dataProvider.update(changedEvent.eventId, changedEvent)
                                 navController.navigate("MainScreen")
                             }
                         }

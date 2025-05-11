@@ -11,7 +11,7 @@ import java.time.LocalDate
 class LocalSaveDataProvider(
     context: Context
 ) : DataProvider<MutableList<CalendarEvent>>(context) {
-    public var data: MutableList<CalendarEvent> = mutableListOf(
+    var data: MutableList<CalendarEvent> = mutableListOf(
         CalendarEvent(
             date = LocalDate.of(LocalDate.now().year, 1, 1),
             name = "Новый Год",

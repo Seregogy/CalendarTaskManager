@@ -129,7 +129,7 @@ fun EditEventPage(
                 }
             ) {
                 Text(
-                    text = "Добавить событие"
+                    text = "Сохранить"
                 )
             }
         }
