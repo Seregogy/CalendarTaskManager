@@ -1,6 +1,12 @@
 package com.example.calendartaskmanager.view
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -37,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -45,8 +53,11 @@ import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import coil3.compose.AsyncImage
 import com.example.calendartaskmanager.R
+import com.example.calendartaskmanager.helper.parallaxLayoutModifier
 import com.example.calendartaskmanager.model.CalendarEvent
+import java.io.File
 import java.time.LocalDate
 
 import java.time.LocalTime
@@ -58,7 +69,6 @@ import java.util.Calendar
 fun EditEventPage(
     event: CalendarEvent = CalendarEvent(
         color = Color.Green,
-        image = BitmapFactory.decodeResource(LocalContext.current.resources, R.drawable.arcane),
         description = LoremIpsum(words = 5).values.toList().first().toString(),
         place = "Россия"
     ),
@@ -67,6 +77,8 @@ fun EditEventPage(
     modifier: Modifier = Modifier,
     onEventAdd: (CalendarEvent) -> Unit = { }
 ) {
+    val context = LocalContext.current
+
     val scrollState = rememberScrollState()
 
     val eventName = remember { mutableStateOf(event.name) }
@@ -77,7 +89,22 @@ fun EditEventPage(
     val endTime = remember { mutableStateOf(event.eventEnd) }
 
     val notificationEnabled = remember { mutableStateOf(true) }
-    val repeatNotification = remember { mutableStateOf(false) }
+    val selectedColor = remember { mutableStateOf(event.color) }
+
+    var selectedImagePath by remember { mutableStateOf("") }
+
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) {
+        it?.let { uri ->
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                val bitmap = BitmapFactory.decodeStream(inputStream)
+
+                val file = File(context.applicationContext.filesDir, "img_${bitmap.hashCode()}.jpeg")
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 30, file.outputStream())
+
+                selectedImagePath = file.path
+            }
+        }
+    }
 
     Box(
         modifier = modifier
@@ -85,7 +112,10 @@ fun EditEventPage(
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(scrollState)
     ) {
-        ImagePickerBox()
+        ImagePickerBox(
+            selectedImagePath,
+            launcher
+        )
 
         Column(
             modifier = Modifier
@@ -110,7 +140,10 @@ fun EditEventPage(
 
             Description(eventDescription)
 
-            Parameters(notificationEnabled, repeatNotification, event)
+            Parameters(
+                notificationEnabled,
+                selectedColor
+            )
 
             Button(
                 modifier = Modifier
@@ -122,10 +155,12 @@ fun EditEventPage(
                     event.eventStart = startTime.value
                     event.eventEnd = endTime.value
                     event.notificationEnabled = notificationEnabled.value
+                    event.imagePath = selectedImagePath
+                    event.color = selectedColor.value
 
                     onEventAdd(event)
 
-                    println("${event.name}\n ${event.description}\n ${event.eventStart.format(timeFormat)}\n ${event.eventEnd.format(timeFormat)}")
+                    println("${event.name}\n ${event.description}\n ${event.eventStart.format(timeFormat)}\n ${event.eventEnd.format(timeFormat)}\n ${event.color.value}")
                 }
             ) {
                 Text(
@@ -137,34 +172,52 @@ fun EditEventPage(
 }
 
 @Composable
-private fun ImagePickerBox() {
+private fun ImagePickerBox(
+    selectedImagePath: String,
+    launcher: ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?>
+) {
     Box(
         modifier = Modifier
             .clickable {
-
+                launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             }
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .fillMaxWidth()
             .height(170.dp)
             .wrapContentHeight()
     ) {
+        if(selectedImagePath.isNotEmpty()) {
+            println(selectedImagePath)
+
+            AsyncImage(
+                model = selectedImagePath,
+                contentDescription = "selected image",
+                contentScale = ContentScale.FillWidth,
+                modifier = Modifier
+                    .align(Alignment.Center)
+            )
+        }
+
         Row(
             modifier = Modifier
-                .align(Alignment.Center),
+                .align(Alignment.Center)
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Добавить картинку",
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.W500
-            )
+            if (selectedImagePath.isEmpty()) {
+                Text(
+                    text = "Добавить картинку",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.W500
+                )
 
-            Icon(
-                painter = painterResource(R.drawable.add_icon),
-                contentDescription = "add icon",
-                tint = MaterialTheme.colorScheme.onSurface
-            )
+                Icon(
+                    painter = painterResource(R.drawable.add_icon),
+                    contentDescription = "add icon",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
         }
     }
 }
@@ -176,7 +229,8 @@ private fun Name(
     TextField(
         value = eventName.value,
         onValueChange = {
-            eventName.value = it
+            if ((eventName.value.count() > 24).not())
+                eventName.value = it
         },
         label = {
             Text(
@@ -296,8 +350,7 @@ private fun Description(
 @Composable
 private fun Parameters(
     notificationEnabled: MutableState<Boolean>,
-    repeatNotification: MutableState<Boolean>,
-    event: CalendarEvent
+    selectedColor: MutableState<Color>
 ) {
     Column {
         Header("Параметры")
@@ -338,27 +391,45 @@ private fun Parameters(
                         checked = notificationEnabled.value,
                         onCheckedChange = {
                             notificationEnabled.value = it
-                            repeatNotification.value = repeatNotification.value && notificationEnabled.value
-                            event.notificationEnabled = notificationEnabled.value
                         }
                     )
                 }
 
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .padding(
+                            end = 10.dp,
+                            bottom = 10.dp
+                        ),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+                    var isDialogEnabled by remember { mutableStateOf(false) }
+
+                    if (isDialogEnabled) {
+                        ColorPickerDialog(
+                            onDismissRequest = {
+                                isDialogEnabled = false
+                            },
+                            onColorSelected = {
+                                selectedColor.value = it
+                            }
+                        )
+                    }
+
                     Text(
-                        "Повторять уведомления"
+                        "Цвет"
                     )
-                    Checkbox(
-                        checked = repeatNotification.value,
-                        onCheckedChange = {
-                            repeatNotification.value = it && notificationEnabled.value
-                            event.notificationEnabled = repeatNotification.value
-                        }
+
+                    Box (
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .size(25.dp)
+                            .background(selectedColor.value)
+                            .clickable {
+                                isDialogEnabled = true
+                            }
                     )
                 }
             }

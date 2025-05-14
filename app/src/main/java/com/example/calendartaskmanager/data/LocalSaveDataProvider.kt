@@ -51,7 +51,6 @@ class LocalSaveDataProvider(
             date = LocalDate.of(LocalDate.now().year, 5, 9),
             name = "День Победы",
             color = Color(0xFFF44336),
-            image = BitmapFactory.decodeResource(context.resources, R.drawable.victory_day),
             description = LoremIpsum(200).values.toList().first().toString(),
             place = "Россия"
         ),

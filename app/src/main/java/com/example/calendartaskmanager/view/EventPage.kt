@@ -4,6 +4,7 @@ import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
@@ -41,6 +43,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.example.calendartaskmanager.R
 import com.example.calendartaskmanager.helper.parallaxLayoutModifier
 import com.example.calendartaskmanager.model.CalendarEvent
@@ -51,7 +54,6 @@ import java.time.format.DateTimeFormatter
 fun EventPage(
     event: CalendarEvent = CalendarEvent(
         color = Color.Green,
-        image = BitmapFactory.decodeResource(LocalContext.current.resources, R.drawable.arcane),
         description = LoremIpsum(words = 5).values.toList().first().toString(),
         place = "Россия"
     ),
@@ -93,72 +95,72 @@ fun EventPage(
 
             Description(event)
 
-            Column {
-                Header("Параметры")
-                Row (
+            Parameters(event)
+        }
+    }
+}
+
+@Composable
+private fun Parameters(event: CalendarEvent) {
+    Column {
+        Header("Параметры")
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .padding(15.dp),
+            horizontalArrangement = Arrangement.spacedBy(15.dp)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.notifications_icon),
+                contentDescription = "idk",
+                modifier = Modifier
+                    .size(24.dp)
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            color = MaterialTheme.colorScheme.surfaceContainer,
-                            shape = RoundedCornerShape(8.dp)
-                        ),
-                    horizontalArrangement = Arrangement.spacedBy(15.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Icon (
-                        painter = painterResource(R.drawable.notifications_icon),
-                        contentDescription = "idk",
-                        modifier = Modifier
-                            .padding(
-                                start = 15.dp,
-                                top = 15.dp
-                            )
-                            .size(24.dp)
+                    Text(
+                        text = "Уведомления"
                     )
 
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    ) {
-                        var notificationEnabled by remember { mutableStateOf(true) }
-                        var repeatNotification by remember { mutableStateOf(false) }
+                    Text(
+                        text = if (event.notificationEnabled)
+                            "включены"
+                        else
+                            "отключены",
+                        fontWeight = FontWeight.W500
+                    )
+                }
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                "Включить уведомления"
-                            )
-                            Checkbox(
-                                checked = notificationEnabled,
-                                onCheckedChange = {
-                                    notificationEnabled = it
-                                    repeatNotification = repeatNotification && notificationEnabled
-                                    event.notificationEnabled = notificationEnabled
-                                }
-                            )
-                        }
-                        
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                "Повторять уведомления"
-                            )
-                            Checkbox(
-                                checked = repeatNotification,
-                                onCheckedChange = {
-                                    repeatNotification = it && notificationEnabled
-                                    event.notificationEnabled = repeatNotification
-                                }
-                            )
-                        }
-                    }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "Цвет"
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .size(25.dp)
+                            .background(event.color)
+                    )
                 }
             }
         }
@@ -329,9 +331,9 @@ private fun BackgroundImage(
     event: CalendarEvent,
     scrollState: ScrollState
 ) {
-    if (event.image != null) {
-        Image(
-            bitmap = event.image!!.asImageBitmap(),
+    if (event.imagePath.isNotEmpty()) {
+        AsyncImage(
+            model = event.imagePath,
             contentScale = ContentScale.Crop,
             contentDescription = "eventImage",
             modifier = Modifier
