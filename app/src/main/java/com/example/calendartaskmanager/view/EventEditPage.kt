@@ -55,11 +55,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
 import com.example.calendartaskmanager.R
-import com.example.calendartaskmanager.helper.parallaxLayoutModifier
 import com.example.calendartaskmanager.model.CalendarEvent
 import java.io.File
 import java.time.LocalDate
-
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
